@@ -1,11 +1,10 @@
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as yup from 'yup';
-import { Label, Div, ErrorText } from './ContactForm.styled';
-
-import { nanoid } from 'nanoid';
+import { Label, Div, ErrorText, AddBtn } from './ContactForm.styled';
+import { useGetContactsQuery, useAddContactMutation } from 'redux/contactsApi';
 import { toast } from 'react-toastify';
-import { useSelector, useDispatch } from 'react-redux';
-import { getItems, updateContacts } from 'redux/contactsSlice';
+import formatPhoneNumber from 'helpers/formatPhoneNumber';
+import { TailSpin } from 'react-loader-spinner';
 
 export const initialValues = {
   name: '',
@@ -28,24 +27,27 @@ const schema = yup.object({
   name: yup.string().required(),
   number: yup
     .string()
-    .min(3)
+    .min(10)
     .required()
     .matches(phoneValid, 'Phone number is not valid'),
 });
 
 const ContactForm = () => {
-  const contacts = useSelector(getItems);
-  const dispatch = useDispatch();
+  const { data: contacts } = useGetContactsQuery();
+  const [addContact, { isLoading }] = useAddContactMutation();
 
   const handleSubmit = (value, { resetForm }) => {
     const { name } = value;
-
     if (contacts.some(el => el.name.toLowerCase() === name.toLowerCase())) {
       return toast.error(`${name} is already in contacts`);
     }
-    dispatch(updateContacts({ id: nanoid(), ...value }));
-
-    resetForm();
+    try {
+      addContact({ name: value.name, number: formatPhoneNumber(value.number) });
+      resetForm();
+      toast.success('Contact added');
+    } catch (error) {
+      toast.error('Error when adding material');
+    }
   };
 
   return (
@@ -63,10 +65,18 @@ const ContactForm = () => {
 
         <Label htmlFor="number">Number</Label>
         <Div>
-          <Field type="tel" name="number" placeholder="Phone number"></Field>
+          <Field
+            type="text"
+            name="number"
+            placeholder="Phone number"
+            maxLength="10"
+          ></Field>
           <FormError name="number" />
         </Div>
-        <button type="submit">Add contact</button>
+        <AddBtn type="submit">
+          {isLoading && <TailSpin color="#16aee0" height="20" width="20" />}
+          Add contact
+        </AddBtn>
       </Form>
     </Formik>
   );

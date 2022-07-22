@@ -1,32 +1,29 @@
-import { Item, List } from './ContactsList.styled';
-import { deleteContact, getFilterValue, getItems } from 'redux/contactsSlice';
-import { useDispatch, useSelector } from 'react-redux/es/exports';
+import { List } from './ContactsList.styled';
+import { getFilterValue } from 'redux/filterSlice';
+import { useSelector } from 'react-redux/es/exports';
+import { useGetContactsQuery } from 'redux/contactsApi';
+import { TailSpin } from 'react-loader-spinner';
+import ContactsListItem from 'components/ContactsListItem';
 
 const ContactsList = () => {
-  const dispatch = useDispatch();
+  const { data, error, isLoading } = useGetContactsQuery();
 
   const filter = useSelector(getFilterValue);
-  const contacts = useSelector(getItems).filter(({ name }) =>
-    name.toLowerCase().includes(filter.toLowerCase())
-  );
+  const contacts =
+    data &&
+    data.filter(({ name }) =>
+      name.toLowerCase().includes(filter.toLowerCase())
+    );
 
   return (
     <div>
+      {isLoading && <TailSpin color="#16aee0" height="50" width="50" />}
+      {error && <p>Ups... Something went wrong, try letter :(</p>}
       <List>
-        {contacts.map(el => {
-          return (
-            <Item key={el.id}>
-              {`${el.name}: ${el.number}`}
-              <button
-                onClick={() => {
-                  dispatch(deleteContact(el.id));
-                }}
-              >
-                Delete
-              </button>
-            </Item>
-          );
-        })}
+        {contacts &&
+          contacts.map(el => {
+            return <ContactsListItem key={el.id} data={el}></ContactsListItem>;
+          })}
       </List>
     </div>
   );

@@ -12,3 +12,9 @@ export const Div = styled.div`
 export const ErrorText = styled.p`
   color: red;
 `;
+
+export const AddBtn = styled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
