@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { List } from './ContactsList.styled';
 import { getFilterValue } from 'redux/filterSlice';
 import { useSelector } from 'react-redux/es/exports';
@@ -9,11 +10,14 @@ const ContactsList = () => {
   const { data, error, isLoading } = useGetContactsQuery();
 
   const filter = useSelector(getFilterValue);
-  const contacts =
-    data &&
-    data.filter(({ name }) =>
-      name.toLowerCase().includes(filter.toLowerCase())
-    );
+  const contacts = useMemo(
+    () =>
+      data &&
+      data.filter(({ name }) =>
+        name.toLowerCase().includes(filter.toLowerCase())
+      ),
+    [data, filter]
+  );
 
   return (
     <div>
